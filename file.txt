@@ -1,0 +1,34 @@
+function add() {
+        $this->_prepare_validation();
+        $data = $this->_load_combo_data();
+        $data['row']['employee_id']='';
+        //If the form is posted, perform the validation. is_posted is a hidden input used to detect if the form is posted
+        if ($_POST) {
+            $data = $this->_get_posted_data();
+            // echo '<pre>';print_r($data);die;
+            $data['created_by'] = $this->get_user_id();
+            //Perform the Validation
+            if ($this->form_validation->run() == TRUE) {
+
+                if ($this->User->add($data)) {
+                    $this->session->set_flashdata('message', $this->lang->line('success_user_add'));
+                    redirect('/users/add/');
+                }
+            } else{
+                 //echo '<pre>';print_r($data);die;
+                $data['row']['employee_id']=$this->input->post('cbo_employee');
+                
+                $data['employee_list'] = $this->Employee->get_branch_wise_employee_list(null,$this->get_current_date());
+            }
+            
+        }
+        $this->config->set_item('csrf_protection',TRUE);       
+        $data['user_roles'] = $this->User_role->get_list($this->get_role_id());
+        $data['is_head_office'] = $this->is_head_office();
+        $data['user_default_branches'] = $this->Po_branch->get_branches_info(null,false,'code',true);
+        //If data is not posted or validation fails, the add view is displayed
+        $data['title'] = $this->lang->line('label_add_user');
+        $data['headline'] = $this->lang->line('label_add_user');
+//        echo '<pre>';print_r($data['language_info']);die;
+        $this->layout->view('/users/add', $data);
+    }
